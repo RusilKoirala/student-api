@@ -1,0 +1,9 @@
+*.exe
+
+*.test
+
+go.work
+go.work.sum
+
+.env
+.local.env
