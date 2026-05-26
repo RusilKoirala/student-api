@@ -7,3 +7,5 @@ go.work.sum
 
 .env
 .local.env
+
+/storage/*
