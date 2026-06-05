@@ -5,6 +5,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/rusilkoirala/student-api/internal/config"
+	"github.com/rusilkoirala/student-api/internal/types"
 )
 
 type Sqlite struct {
@@ -53,4 +54,20 @@ func (s *Sqlite) CreateStudent(name string, email string, age int) (int64, error
 		return 0, err
 	}
 	return Lastid, nil
+}
+
+func (s *Sqlite) GetStudent(id int64) (types.Student, error) {
+	stmt, err := s.Db.Prepare("SELECT * FROM students WHERE id = ? LIMIT 1")
+	if err != nil {
+		return types.Student{}, err
+	}
+	defer stmt.Close()
+
+	var student types.Student
+
+	err = stmt.QueryRow(id).Scan(&student.Id, &student.Name, &student.Email, &student.Age)
+	if err != nil {
+		return types.Student{}, err
+	}
+	return student, nil
 }
