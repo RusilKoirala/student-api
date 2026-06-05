@@ -20,6 +20,7 @@ func main() {
 
 	// Load config
 	cfg := config.MustLoad()
+
 	// Db setup
 	storage, err := sqlite.New(cfg)
 
@@ -28,6 +29,7 @@ func main() {
 	}
 
 	slog.Info("Storage initialized", slog.String("env", cfg.Env), slog.String("version", "1.0.0"))
+
 	// Router setup
 
 	router := http.NewServeMux()
@@ -37,8 +39,9 @@ func main() {
 
 	router.HandleFunc("GET /api/students", student.GetList(storage))
 
-	// Setup server
+	router.HandleFunc("DELETE /api/students/{id}", student.Delete(storage))
 
+	// Setup server
 	server := http.Server{
 		Addr:    cfg.Address,
 		Handler: router,
