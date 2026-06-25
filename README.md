@@ -55,6 +55,18 @@ I also built a simple React frontend to visualize and interact with the data!
 
 4. Open your browser and go to `https://localhost:5173`
 
+### Docker Deployment
+
+You can run the backend in a container with a production-friendly setup:
+
+```bash
+docker build -t student-api .
+docker run --rm -p 3000:3000 \
+  -e CONFIG_PATH=/app/config/local.yaml \
+  -v "$PWD/storage:/app/storage" \
+  student-api
+```
+
 ---
 
 Thank you!
