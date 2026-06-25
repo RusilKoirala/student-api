@@ -42,16 +42,19 @@ func main() {
 	protected.HandleFunc("POST /api/students", studentHandler.Create(store))
 	protected.HandleFunc("GET /api/students/{id}", studentHandler.GetById(store))
 	protected.HandleFunc("GET /api/students", studentHandler.GetList(store))
+	protected.HandleFunc("PUT /api/students/{id}", studentHandler.Update(store))
 	protected.HandleFunc("DELETE /api/students/{id}", studentHandler.Delete(store))
 
 	protected.HandleFunc("POST /api/teachers", teacherHandler.Create(store))
 	protected.HandleFunc("GET /api/teachers/{id}", teacherHandler.GetById(store))
 	protected.HandleFunc("GET /api/teachers", teacherHandler.GetList(store))
+	protected.HandleFunc("PUT /api/teachers/{id}", teacherHandler.Update(store))
 	protected.HandleFunc("DELETE /api/teachers/{id}", teacherHandler.Delete(store))
 
 	protected.HandleFunc("POST /api/classes", classHandler.Create(store))
 	protected.HandleFunc("GET /api/classes/{id}", classHandler.GetById(store))
 	protected.HandleFunc("GET /api/classes", classHandler.GetList(store))
+	protected.HandleFunc("PUT /api/classes/{id}", classHandler.Update(store))
 	protected.HandleFunc("DELETE /api/classes/{id}", classHandler.Delete(store))
 
 	protected.HandleFunc("GET /api/stats", func(w http.ResponseWriter, r *http.Request) {

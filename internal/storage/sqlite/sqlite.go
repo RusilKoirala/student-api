@@ -138,6 +138,18 @@ func (s *Sqlite) Delete(id int64, schoolId int) error {
 	return err
 }
 
+func (s *Sqlite) UpdateStudent(id int64, name string, email string, age int, classId int, schoolId int) error {
+	var classArg interface{}
+	if classId > 0 {
+		classArg = classId
+	}
+	_, err := s.Db.Exec(
+		"UPDATE students SET name=?, email=?, age=?, class_id=? WHERE id=? AND school_id=?",
+		name, email, age, classArg, id, schoolId,
+	)
+	return err
+}
+
 // ── Teachers ──────────────────────────────────────────────────────────────────
 
 func (s *Sqlite) CreateTeacher(name, email, subject string, schoolId int) (int64, error) {
@@ -186,6 +198,14 @@ func (s *Sqlite) GetAllTeachers(schoolId int) ([]types.Teacher, error) {
 
 func (s *Sqlite) DeleteTeacher(id int64, schoolId int) error {
 	_, err := s.Db.Exec("DELETE FROM teachers WHERE id=? AND school_id=?", id, schoolId)
+	return err
+}
+
+func (s *Sqlite) UpdateTeacher(id int64, name string, email string, subject string, schoolId int) error {
+	_, err := s.Db.Exec(
+		"UPDATE teachers SET name=?, email=?, subject=? WHERE id=? AND school_id=?",
+		name, email, subject, id, schoolId,
+	)
 	return err
 }
 
@@ -247,6 +267,18 @@ func (s *Sqlite) GetAllClasses(schoolId int) ([]types.Class, error) {
 
 func (s *Sqlite) DeleteClass(id int64, schoolId int) error {
 	_, err := s.Db.Exec("DELETE FROM classes WHERE id=? AND school_id=?", id, schoolId)
+	return err
+}
+
+func (s *Sqlite) UpdateClass(id int64, name string, teacherId int, schoolId int) error {
+	var teacherArg interface{}
+	if teacherId > 0 {
+		teacherArg = teacherId
+	}
+	_, err := s.Db.Exec(
+		"UPDATE classes SET name=?, teacher_id=? WHERE id=? AND school_id=?",
+		name, teacherArg, id, schoolId,
+	)
 	return err
 }
 

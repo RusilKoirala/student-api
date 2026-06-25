@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Trash2, GraduationCap } from "lucide-react";
+import { Plus, Trash2, GraduationCap, Edit2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getStudents, createStudent, deleteStudent, getClasses } from "@/lib/api";
+import { getStudents, createStudent, deleteStudent, updateStudent, getClasses } from "@/lib/api";
 
 const EMPTY = { name: "", email: "", age: "", classId: "" };
 
@@ -37,6 +37,7 @@ export default function Students() {
   const [loading, setLoading]   = useState(true);
   const [open, setOpen]         = useState(false);
   const [form, setForm]         = useState(EMPTY);
+  const [editingId, setEditingId] = useState(null);
   const [saving, setSaving]     = useState(false);
 
   const classMap = Object.fromEntries(classes.map((c) => [c.id, c.name]));
@@ -50,7 +51,7 @@ export default function Students() {
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  async function handleCreate(e) {
+  async function handleSave(e) {
     e.preventDefault();
     if (!form.name || !form.email || !form.age) {
       toast.error("Name, email and age are required");
@@ -58,21 +59,43 @@ export default function Students() {
     }
     setSaving(true);
     try {
-      await createStudent({
-        name:    form.name,
-        email:   form.email,
-        age:     Number(form.age),
-        classId: Number(form.classId) || 0,
-      });
-      toast.success("Student enrolled");
+      if (editingId) {
+        await updateStudent(editingId, {
+          name:    form.name,
+          email:   form.email,
+          age:     Number(form.age),
+          classId: Number(form.classId) || 0,
+        });
+        toast.success("Student updated");
+      } else {
+        await createStudent({
+          name:    form.name,
+          email:   form.email,
+          age:     Number(form.age),
+          classId: Number(form.classId) || 0,
+        });
+        toast.success("Student enrolled");
+      }
       setOpen(false);
       setForm(EMPTY);
+      setEditingId(null);
       load();
     } catch {
-      toast.error("Failed to enrol student");
+      toast.error(editingId ? "Failed to update student" : "Failed to enrol student");
     } finally {
       setSaving(false);
     }
+  }
+
+  function handleEdit(student) {
+    setEditingId(student.id);
+    setForm({
+      name: student.name,
+      email: student.email,
+      age: String(student.age),
+      classId: student.classId ? String(student.classId) : "",
+    });
+    setOpen(true);
   }
 
   async function handleDelete(id, name) {
@@ -96,7 +119,7 @@ export default function Students() {
             {students.length} student{students.length !== 1 ? "s" : ""} enrolled
           </p>
         </div>
-        <Button onClick={() => setOpen(true)}>
+        <Button onClick={() => { setEditingId(null); setForm(EMPTY); setOpen(true); }}>
           <Plus className="size-4" />
           Enrol Student
         </Button>
@@ -111,7 +134,7 @@ export default function Students() {
               <TableHead>Email</TableHead>
               <TableHead>Age</TableHead>
               <TableHead>Class</TableHead>
-              <TableHead className="w-16" />
+              <TableHead className="w-24" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -143,7 +166,14 @@ export default function Students() {
                       <span className="text-sm italic text-muted-foreground">None</span>
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => handleEdit(s)}
+                    >
+                      <Edit2 className="size-4" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="icon-sm"
@@ -160,13 +190,13 @@ export default function Students() {
         </Table>
       </div>
 
-      {/* Enrol Dialog */}
-      <Dialog open={open} onOpenChange={setOpen}>
+      {/* Enrol/Edit Dialog */}
+      <Dialog open={open} onOpenChange={(o) => { if (!o) { setEditingId(null); setForm(EMPTY); } setOpen(o); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Enrol Student</DialogTitle>
+            <DialogTitle>{editingId ? "Edit Student" : "Enrol Student"}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleCreate} className="space-y-4">
+          <form onSubmit={handleSave} className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="s-name">Full Name</Label>
               <Input id="s-name" placeholder="John Doe" value={form.name} onChange={set("name")} />
@@ -199,11 +229,11 @@ export default function Students() {
               </Select>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              <Button type="button" variant="outline" onClick={() => { setOpen(false); setEditingId(null); setForm(EMPTY); }}>
                 Cancel
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving ? "Saving…" : "Enrol"}
+                {saving ? "Saving…" : (editingId ? "Save Changes" : "Enrol")}
               </Button>
             </DialogFooter>
           </form>

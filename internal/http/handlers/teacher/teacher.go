@@ -107,3 +107,42 @@ func Delete(storage storage.Storage) http.HandlerFunc {
 		response.WriteJson(w, http.StatusOK, map[string]int64{"deleted": intId})
 	}
 }
+
+func Update(storage storage.Storage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		schoolId, ok := middleware.SchoolIDFromCtx(w, r)
+		if !ok {
+			return
+		}
+
+		intId, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+		if err != nil {
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(err))
+			return
+		}
+
+		var t types.Teacher
+		err = json.NewDecoder(r.Body).Decode(&t)
+		if errors.Is(err, io.EOF) {
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(err))
+			return
+		}
+		if err != nil {
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(err))
+			return
+		}
+
+		if err := validator.New().Struct(t); err != nil {
+			response.WriteJson(w, http.StatusBadRequest, response.ValidationError(err.(validator.ValidationErrors)))
+			return
+		}
+
+		if err = storage.UpdateTeacher(intId, t.Name, t.Email, t.Subject, schoolId); err != nil {
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(err))
+			return
+		}
+
+		slog.Info("Teacher updated", slog.Int64("id", intId))
+		response.WriteJson(w, http.StatusOK, map[string]int64{"updated": intId})
+	}
+}

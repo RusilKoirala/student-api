@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Trash2, BookOpen } from "lucide-react";
+import { Plus, Trash2, BookOpen, Edit2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getClasses, createClass, deleteClass, getTeachers } from "@/lib/api";
+import { getClasses, createClass, deleteClass, updateClass, getTeachers } from "@/lib/api";
 
 const EMPTY = { name: "", teacherId: "" };
 
@@ -36,6 +36,7 @@ export default function Classes() {
   const [loading, setLoading]   = useState(true);
   const [open, setOpen]         = useState(false);
   const [form, setForm]         = useState(EMPTY);
+  const [editingId, setEditingId] = useState(null);
   const [saving, setSaving]     = useState(false);
 
   const load = () =>
@@ -45,21 +46,36 @@ export default function Classes() {
 
   useEffect(() => { load(); }, []);
 
-  async function handleCreate(e) {
+  async function handleSave(e) {
     e.preventDefault();
     if (!form.name) { toast.error("Class name is required"); return; }
     setSaving(true);
     try {
-      await createClass({ name: form.name, teacherId: Number(form.teacherId) || 0 });
-      toast.success("Class created");
+      if (editingId) {
+        await updateClass(editingId, { name: form.name, teacherId: Number(form.teacherId) || 0 });
+        toast.success("Class updated");
+      } else {
+        await createClass({ name: form.name, teacherId: Number(form.teacherId) || 0 });
+        toast.success("Class created");
+      }
       setOpen(false);
       setForm(EMPTY);
+      setEditingId(null);
       load();
     } catch {
-      toast.error("Failed to create class");
+      toast.error(editingId ? "Failed to update class" : "Failed to create class");
     } finally {
       setSaving(false);
     }
+  }
+
+  function handleEdit(cls) {
+    setEditingId(cls.id);
+    setForm({
+      name: cls.name,
+      teacherId: cls.teacherId ? String(cls.teacherId) : "",
+    });
+    setOpen(true);
   }
 
   async function handleDelete(id, name) {
@@ -83,7 +99,7 @@ export default function Classes() {
             {classes.length} class{classes.length !== 1 ? "es" : ""} total
           </p>
         </div>
-        <Button onClick={() => setOpen(true)}>
+        <Button onClick={() => { setEditingId(null); setForm(EMPTY); setOpen(true); }}>
           <Plus className="size-4" />
           Add Class
         </Button>
@@ -96,7 +112,7 @@ export default function Classes() {
             <TableRow>
               <TableHead>Class Name</TableHead>
               <TableHead>Teacher</TableHead>
-              <TableHead className="w-16" />
+              <TableHead className="w-24" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -122,7 +138,14 @@ export default function Classes() {
                   <TableCell className="text-muted-foreground">
                     {c.teacherName || <span className="italic opacity-50">Unassigned</span>}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => handleEdit(c)}
+                    >
+                      <Edit2 className="size-4" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="icon-sm"
@@ -139,13 +162,13 @@ export default function Classes() {
         </Table>
       </div>
 
-      {/* Add Dialog */}
-      <Dialog open={open} onOpenChange={setOpen}>
+      {/* Add/Edit Dialog */}
+      <Dialog open={open} onOpenChange={(o) => { if (!o) { setEditingId(null); setForm(EMPTY); } setOpen(o); }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Class</DialogTitle>
+            <DialogTitle>{editingId ? "Edit Class" : "Add Class"}</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleCreate} className="space-y-4">
+          <form onSubmit={handleSave} className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="c-name">Class Name</Label>
               <Input
@@ -174,11 +197,11 @@ export default function Classes() {
               </Select>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              <Button type="button" variant="outline" onClick={() => { setOpen(false); setEditingId(null); setForm(EMPTY); }}>
                 Cancel
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving ? "Saving…" : "Add Class"}
+                {saving ? "Saving…" : (editingId ? "Save Changes" : "Add Class")}
               </Button>
             </DialogFooter>
           </form>
