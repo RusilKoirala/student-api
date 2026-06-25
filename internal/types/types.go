@@ -5,11 +5,14 @@ import (
 	"strconv"
 )
 
+// ── Student ──────────────────────────────────────────────────────────────────
+
 type Student struct {
-	Id    int    `json:"id"`
-	Name  string `json:"name" validate:"required"`
-	Email string `json:"email" validate:"required"`
-	Age   int    `json:"age" validate:"required"`
+	Id      int    `json:"id"`
+	Name    string `json:"name"    validate:"required"`
+	Email   string `json:"email"   validate:"required"`
+	Age     int    `json:"age"     validate:"required"`
+	ClassId int    `json:"classId"`
 }
 
 func (s *Student) UnmarshalJSON(data []byte) error {
@@ -20,12 +23,9 @@ func (s *Student) UnmarshalJSON(data []byte) error {
 	}{
 		Alias: (*Alias)(s),
 	}
-
 	if err := json.Unmarshal(data, &aux); err != nil {
 		return err
 	}
-
-	// Handle id as either string or number
 	switch v := aux.Id.(type) {
 	case float64:
 		s.Id = int(v)
@@ -36,6 +36,48 @@ func (s *Student) UnmarshalJSON(data []byte) error {
 		}
 		s.Id = id
 	}
-
 	return nil
+}
+
+// ── School ────────────────────────────────────────────────────────────────────
+
+type School struct {
+	Id           int    `json:"id"`
+	Name         string `json:"name"`
+	Username     string `json:"username"`
+	PasswordHash string `json:"-"` // never serialised
+}
+
+type RegisterRequest struct {
+	SchoolName string `json:"schoolName" validate:"required"`
+	Username   string `json:"username"   validate:"required,min=3"`
+	Password   string `json:"password"   validate:"required,min=6"`
+}
+
+type LoginRequest struct {
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
+}
+
+type AuthResponse struct {
+	Token      string `json:"token"`
+	SchoolName string `json:"schoolName"`
+	SchoolId   int    `json:"schoolId"`
+}
+
+type Teacher struct {
+	Id      int    `json:"id"`
+	Name    string `json:"name"    validate:"required"`
+	Email   string `json:"email"   validate:"required"`
+	Subject string `json:"subject" validate:"required"`
+}
+
+// ── Class ────────────────────────────────────────────────────────────────────
+
+type Class struct {
+	Id        int    `json:"id"`
+	Name      string `json:"name"      validate:"required"`
+	TeacherId int    `json:"teacherId"`
+	// populated on read, not stored directly
+	TeacherName string `json:"teacherName,omitempty"`
 }

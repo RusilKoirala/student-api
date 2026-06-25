@@ -11,6 +11,7 @@ import (
 type Config struct {
 	Env          string `yaml:"env" env:"ENV" env-default:"production"`
 	Storage_path string `yaml:"storage_path" env:"STORAGE_PATH" env-default:"storage/storage.db"`
+	JWTSecret    string `yaml:"jwt_secret" env:"JWT_SECRET" env-default:"change-me-in-production"`
 	Http_server  `yaml:"http_server"`
 }
 

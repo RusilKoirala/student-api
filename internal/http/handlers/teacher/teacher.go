@@ -1,4 +1,4 @@
-package student
+package teacher
 
 import (
 	"encoding/json"
@@ -22,8 +22,8 @@ func Create(storage storage.Storage) http.HandlerFunc {
 			return
 		}
 
-		var student types.Student
-		err := json.NewDecoder(r.Body).Decode(&student)
+		var t types.Teacher
+		err := json.NewDecoder(r.Body).Decode(&t)
 		if errors.Is(err, io.EOF) {
 			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(err))
 			return
@@ -33,18 +33,18 @@ func Create(storage storage.Storage) http.HandlerFunc {
 			return
 		}
 
-		if err := validator.New().Struct(student); err != nil {
+		if err := validator.New().Struct(t); err != nil {
 			response.WriteJson(w, http.StatusBadRequest, response.ValidationError(err.(validator.ValidationErrors)))
 			return
 		}
 
-		lastId, err := storage.CreateStudent(student.Name, student.Email, student.Age, student.ClassId, schoolId)
+		lastId, err := storage.CreateTeacher(t.Name, t.Email, t.Subject, schoolId)
 		if err != nil {
 			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(err))
 			return
 		}
 
-		slog.Info("Student created", slog.Int64("id", lastId))
+		slog.Info("Teacher created", slog.Int64("id", lastId))
 		response.WriteJson(w, http.StatusCreated, map[string]int64{"id": lastId})
 	}
 }
@@ -62,12 +62,12 @@ func GetById(storage storage.Storage) http.HandlerFunc {
 			return
 		}
 
-		student, err := storage.GetStudent(intId, schoolId)
+		t, err := storage.GetTeacher(intId, schoolId)
 		if err != nil {
 			response.WriteJson(w, http.StatusNotFound, response.GeneralError(err))
 			return
 		}
-		response.WriteJson(w, http.StatusOK, student)
+		response.WriteJson(w, http.StatusOK, t)
 	}
 }
 
@@ -78,12 +78,12 @@ func GetList(storage storage.Storage) http.HandlerFunc {
 			return
 		}
 
-		students, err := storage.GetAllStudent(schoolId)
+		teachers, err := storage.GetAllTeachers(schoolId)
 		if err != nil {
 			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(err))
 			return
 		}
-		response.WriteJson(w, http.StatusOK, students)
+		response.WriteJson(w, http.StatusOK, teachers)
 	}
 }
 
@@ -100,7 +100,7 @@ func Delete(storage storage.Storage) http.HandlerFunc {
 			return
 		}
 
-		if err = storage.Delete(intId, schoolId); err != nil {
+		if err = storage.DeleteTeacher(intId, schoolId); err != nil {
 			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(err))
 			return
 		}
