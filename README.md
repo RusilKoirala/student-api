@@ -123,6 +123,8 @@ It's a full-stack CRUD application that lets you:
 
 ![image](/screenshot/image2.png)
 
+### Tech Used
+
 ### Backend (Go API)
 - **Runtime:** Go
 - **Framework:** Standard library + net/http
@@ -138,6 +140,16 @@ It's a full-stack CRUD application that lets you:
 
 ### Infrastructure
 - **Containerization:** Docker
+
+## AI Usage
+
+- **Backend:** Written entirely by me, no AI assistance used.
+- **Frontend:**
+  - Used AI to build frontend components
+  - Provided direction about UI/UX design
+  - AI helped with downloading and setting up shadcn/ui
+  - AI reviewed frontend code
+- **Refactoring:** Used AI for code refactoring assistance
 
 ## How to Use
 

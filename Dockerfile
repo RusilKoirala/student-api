@@ -14,7 +14,7 @@ COPY . .
 RUN CGO_ENABLED=1 GOOS=linux go build -ldflags="-s -w" -o student-api ./cmd/student-api
 
 # ---- final image ----
-FROM alpine:3.20
+FROM alpine:3.20 AS production
 
 # ca-certificates for HTTPS calls, sqlite-libs for the sqlite3 shared lib
 RUN apk add --no-cache ca-certificates sqlite-libs
