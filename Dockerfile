@@ -1,4 +1,4 @@
-FROM golang:1.22-alpine AS builder
+FROM golang:1.26-alpine AS builder
 
 # CGO requires gcc and musl-dev on alpine
 RUN apk add --no-cache gcc musl-dev sqlite-dev
